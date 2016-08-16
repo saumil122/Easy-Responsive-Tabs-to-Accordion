@@ -10,16 +10,17 @@
                 fit: true,
                 closed: false,
                 tabidentify: '',
+                uri_update: true,
                 activetab_bg: 'white',
                 inactive_bg: '#F5F5F5',
                 active_border_color: '#c1c1c1',
                 active_content_border_color: '#c1c1c1',
-                activate: function () {
-                }
+                initTab: function () { },
+                activate: function () { }
             }
             //Variables
             var options = $.extend(defaults, options);
-            var opt = options, jtype = opt.type, jfit = opt.fit, jwidth = opt.width, vtabs = 'vertical', accord = 'accordion';
+            var opt = options, uri_update= opt.uri_update, jtype = opt.type, jfit = opt.fit, jwidth = opt.width, vtabs = 'vertical', accord = 'accordion';
             var hash = window.location.hash;
             var historyApi = !!(window.history && history.replaceState);
 
@@ -29,7 +30,14 @@
                     options.activate.call(currentTab, e)
                 }
             });
-
+			
+            //Events
+            $(this).bind('tabinit', function (e, currentTab) {
+                if (typeof options.initTab === 'function') {
+                    options.initTab.call(currentTab, e)
+                }
+            });
+            
             //Main function
             this.each(function () {
                 var $respTabs = $(this);
@@ -170,7 +178,7 @@
 
                             $respTabs.find('.resp-tab-content[aria-labelledby = ' + $tabAria + '].' + options.tabidentify).slideDown().addClass('resp-tab-content-active');
                         } else {
-                            console.log('here');
+                            //console.log('here');
                             $respTabs.find('.resp-tab-active.' + options.tabidentify).removeClass('resp-tab-active').css({
                                 'background-color': options.inactive_bg,
                                 'border-color': 'none'
@@ -189,7 +197,7 @@
                         $currentTab.trigger('tabactivate', $currentTab);
 
                         //Update Browser History
-                        if (historyApi) {
+                        if (historyApi && uri_update) {
                             var currentHash = window.location.hash;
                             var tabAriaParts = $tabAria.split('tab_item-');
                             // var newHash = respTabsId + (parseInt($tabAria.substring(9), 10) + 1).toString();
@@ -211,8 +219,12 @@
                         }
                     });
 
+					
                 });
-
+				
+                //Trigger tab init event
+				$currentTab.trigger('tabinit', $currentTab);
+                
                 //Window resize function                   
                 $(window).resize(function () {
                     $respTabs.find('.resp-accordion-closed').removeAttr('style');
@@ -221,4 +233,3 @@
         }
     });
 })(jQuery);
-
